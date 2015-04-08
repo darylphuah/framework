@@ -184,11 +184,23 @@ class Middleware implements HttpKernelInterface {
 
 		if ($this->sessionIsPersistent($c = $this->manager->getSessionConfig()))
 		{
-			$secure = array_get($c, 'secure', false);
+			$secure   = array_get($c, 'secure',   false);
+			$httpOnly = array_get($c, 'httpOnly', true);
 
-			$response->headers->setCookie(new Cookie(
-				$s->getName(), $s->getId(), $this->getCookieLifetime(), $c['path'], $c['domain'], $secure
-			));
+			if ( isset($this->app['cookie']) )
+			{
+				$cookie = $this->app['cookie']->make(
+					$s->getName(), $s->getId(), $c['lifetime'], $c['path'], $c['domain'], $secure, $httpOnly
+				);
+			}
+			else 
+			{
+				$cookie = new Cookie(
+					$s->getName(), $s->getId(), $this->getCookieLifetime(), $c['path'], $c['domain'], $secure, $httpOnly
+				);
+			}
+
+			$response->headers->setCookie($cookie);
 		}
 	}
 
